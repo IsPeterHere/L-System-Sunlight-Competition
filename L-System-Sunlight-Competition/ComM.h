@@ -29,10 +29,7 @@ namespace L_Systems
     class L_System
     {
     public:
-        L_System(Rules rule_set, std::vector<alphabet_T> starting_word) : rule_set(rule_set), starting_word(starting_word)
-        {
-            reset();
-        }
+        L_System(Rules* rule_set, std::vector<alphabet_T>* starting_word) : rule_set(rule_set), word(starting_word){}
 
         void run(int steps)
         {
@@ -42,28 +39,23 @@ namespace L_Systems
             }
         }
 
-        void reset()
-        {
-            word = std::vector<alphabet_T>(starting_word);
-        }
 
-        std::vector<alphabet_T> word{};
+        std::vector<alphabet_T>* word{};
 
     private:
-        Rules rule_set;
-        std::vector<alphabet_T> starting_word;
+        Rules* rule_set;
 
         void step()
         {
             std::vector<alphabet_T> new_word{};
 
-            for (alphabet_T letter : word)
+            for (alphabet_T letter : *word)
             {
-                std::vector<alphabet_T>* expansion{ rule_set[letter] };
+                std::vector<alphabet_T>* expansion{ (*rule_set)[letter] };
                 for (alphabet_T new_letter : *expansion) new_word.push_back(new_letter);
             }
 
-            word.swap(new_word);
+            word->swap(new_word);
         }
     };
 }
