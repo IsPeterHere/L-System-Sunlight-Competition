@@ -78,7 +78,6 @@ public:
         while (!glfwWindowShouldClose(window->getHandle()))
         {
             f();
-            //for (MYR::Vertex V: vertices) std::cout << V.pos.x << "," << V.pos.y << "\n";
             buffers->initVIBuffer(bufferManager, vertices, indices);
             glfwPollEvents();
             control->update_camera(camera, 20, 5);
