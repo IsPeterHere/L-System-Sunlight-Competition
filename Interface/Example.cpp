@@ -73,11 +73,23 @@ public:
         control = Control::makeControl(window->getHandle());
     }
 
-    void run(void (*f)())
+    void run(void (*f)(), float f_call_time)
     {
         while (!glfwWindowShouldClose(window->getHandle()))
         {
-            f();
+            static std::chrono::steady_clock::time_point  startTime = std::chrono::high_resolution_clock::now();
+            static float f_call_time_ellapsed{ 0 };
+
+            std::chrono::steady_clock::time_point  currentTime = std::chrono::high_resolution_clock::now();
+            f_call_time_ellapsed += std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+            
+            if (f_call_time_ellapsed >= f_call_time)
+            {
+                f_call_time_ellapsed = 0;
+                startTime = std::chrono::high_resolution_clock::now();
+                f();
+            }
+
             buffers->initVIBuffer(bufferManager, vertices, indices);
             glfwPollEvents();
             control->update_camera(camera, 20, 5);
@@ -314,7 +326,7 @@ public:
         instance = this;
         world.start();
         app.boot_up();
-        app.run(&update);
+        app.run(&update,1000);
         world.end();
     }
 

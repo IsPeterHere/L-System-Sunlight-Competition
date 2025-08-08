@@ -99,8 +99,53 @@ class Species
 {
 public:
 	Species() {}
+	
+	Species* Mutation(int seed)
+	{
+		Species* mutated = new Species();
+		L_Systems::Rules* new_DNA = mutated->get_DNA();
+
+		static std::default_random_engine generator;
+		generator.seed(seed);
+		static std::uniform_int_distribution<int> distribution(0, static_cast<int>(Cmd_lang::NUMBER_OF_UNIQUE_COMMANDS));
+		static std::bernoulli_distribution bool_distribution{};
+
+		Cmd_lang from{distribution(generator)};
+		bool add{ bool_distribution(generator) };
+		
+		for (int i{ 0 }; static_cast<Cmd_lang>(i) < Cmd_lang::NUMBER_OF_UNIQUE_COMMANDS; i++)
+		{
+			Cmd_lang cmd{ static_cast<Cmd_lang>(i) };
+			std::vector< L_Systems::alphabet_T> to{ *DNA[static_cast<L_Systems::alphabet_T>(cmd)] };
+
+			if (cmd == from)
+			{
+				std::vector<L_Systems::alphabet_T>::iterator index = to.begin();
+				if (to.size() > 0)
+				{
+					std::uniform_int_distribution<int> where(0, to.size() - 1);
+					index += where(generator);
+				}
+			
+
+
+				if (add)
+				{
+					Cmd_lang new_item{ distribution(generator) };
+					to.insert(index, static_cast<L_Systems::alphabet_T>(new_item));
+				}
+				else
+				{
+					to.erase(index);
+				}
+			}
+			new_DNA->add(static_cast<L_Systems::alphabet_T>(cmd), to);
+		}
+		return mutated;
+	}
 
 	L_Systems::Rules* get_DNA() { return &DNA; }
+	int seed_points{};
 private:
 
 	L_Systems::Rules DNA{ static_cast<L_Systems::alphabet_T>(Cmd_lang::NUMBER_OF_UNIQUE_COMMANDS) };
@@ -157,10 +202,10 @@ public:
 				index += 1;
 				break;
 			case Cmd_lang::left:
-				pointing += 1;
+				pointing += 0.2;
 				break;
 			case Cmd_lang::right:
-				pointing -= 1;
+				pointing -= 0.2;
 				break;
 			case Cmd_lang::next:
 				index += 1;
@@ -207,13 +252,16 @@ public:
 	}
 	void day()
 	{
+		static std::random_device rnd;
+		generator.seed(rnd());
+
 		display->clear_screen();
 		draw_background();
 		draw_ground();
-		//std::cout << "--New Day-- " << "\n";
+		std::cout << "--New Day-- " << "\n";
 		growing();
-		//std::cout << "Number of Living Plants: " << plants.size() << "\n";
-		//std::cout << "Number of Living Species: " << species.size() << "\n";
+		std::cout << "Number of Living Plants: " << plants.size() << "\n";
+		std::cout << "Number of Living Species: " << species.size() << "\n";
 		for (Plant* plant : plants) delete plant;
 		plants.clear();
 		plant_seeds();
@@ -234,6 +282,8 @@ private:
 
 	const int day_length{ 10 };
 
+	std::default_random_engine generator;
+
 	void growing()
 	{
 		for (int segment{ 0 }; segment < day_length; segment++)
@@ -244,10 +294,10 @@ private:
 
 	void plant_seeds()
 	{
+		species.push_back(species[species.size()-1]->Mutation(generator()));
 		for (Species* specie : species)
 		{
-			std::default_random_engine generator;
-			std::uniform_int_distribution<int> distribution(-display->get_screen_width() / 2, display->get_screen_width() / 2);
+			std::uniform_int_distribution<int> distribution(0, display->get_screen_width());
 			plants.push_back(new Plant(specie,distribution(generator), 50));
 		}
 	}
