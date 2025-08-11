@@ -77,8 +77,8 @@ public:
     {
         while (!glfwWindowShouldClose(window->getHandle()))
         {
-            static std::chrono::steady_clock::time_point  startTime = std::chrono::high_resolution_clock::now();
-            static float f_call_time_ellapsed{ 0 };
+            std::chrono::steady_clock::time_point  startTime = std::chrono::high_resolution_clock::now();
+            float f_call_time_ellapsed{ 0 };
 
             std::chrono::steady_clock::time_point  currentTime = std::chrono::high_resolution_clock::now();
             f_call_time_ellapsed += std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
@@ -326,7 +326,7 @@ public:
         instance = this;
         world.start();
         app.boot_up();
-        app.run(&update,1000);
+        app.run(&update,100);
         world.end();
     }
 
