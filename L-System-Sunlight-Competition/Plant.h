@@ -2,9 +2,24 @@
 #include <iostream>
 #include<random>
 #include<vector>
+#include<algorithm>
 #include<cmath>
 #include"..\Interface\MYR.h"
 #include "ComM.h"
+
+const int MAX_ENERGY_DEBT{ -10 };
+const int COST_OF_STICK{ 1 };
+const int COST_OF_LEAF{ 1 };
+const int COST_OF_SEED_BALLOT{ 1 };
+
+const float ROTATION_RADS{ 0.2f };
+const int STICK_LENGTH{ 10 };
+
+const int GROUND_HEIGHT{ 50 };
+const glm::vec3 GROUND_COLOUR{ 139 / 255.0, 69 / 255.0, 4 / 255.0 };
+const glm::vec3 SKY_COLOUR{ 0 / 255.0, 10 / 255.0, 200 / 255.0 };
+const glm::vec3 STICK_COLOUR{ 0.95,0.0,0.0 };
+const glm::vec3 LEAF_COLOUR{ 0.0,0.95,0.0 };
 
 class Display
 {
@@ -105,12 +120,11 @@ public:
 		Species* mutated = new Species();
 		L_Systems::Rules* new_DNA = mutated->get_DNA();
 
-		static std::default_random_engine generator;
 		generator.seed(seed);
-		static std::uniform_int_distribution<int> distribution(0, static_cast<int>(Cmd_lang::NUMBER_OF_UNIQUE_COMMANDS));
-		static std::bernoulli_distribution bool_distribution{};
+		std::uniform_int_distribution<int> cmd_distribution(0, static_cast<int>(Cmd_lang::NUMBER_OF_UNIQUE_COMMANDS)-1);
+		std::bernoulli_distribution bool_distribution{};
 
-		Cmd_lang from{distribution(generator)};
+		Cmd_lang from{ cmd_distribution(generator)};
 		bool add{ bool_distribution(generator) };
 		
 		for (int i{ 0 }; static_cast<Cmd_lang>(i) < Cmd_lang::NUMBER_OF_UNIQUE_COMMANDS; i++)
@@ -131,7 +145,7 @@ public:
 
 				if (add)
 				{
-					Cmd_lang new_item{ distribution(generator) };
+					Cmd_lang new_item{ cmd_distribution(generator) };
 					to.insert(index, static_cast<L_Systems::alphabet_T>(new_item));
 				}
 				else
@@ -146,8 +160,9 @@ public:
 	}
 
 	L_Systems::Rules* get_DNA() { return &DNA; }
-	int seed_points{};
+	int seed_ballot_points{ 0 };
 private:
+	std::default_random_engine generator;
 
 	L_Systems::Rules DNA{ static_cast<L_Systems::alphabet_T>(Cmd_lang::NUMBER_OF_UNIQUE_COMMANDS) };
 
@@ -168,7 +183,7 @@ class Plant
 	};
 
 public:
-	Plant(Species* species, int x_planted_position, int y_planted_position) : species(species), x_planted_position(x_planted_position) 
+	Plant(Species* species, float x_planted_position, float y_planted_position) : species(species), x_planted_position(x_planted_position)
 	{
 		stick s{ {x_planted_position,y_planted_position},0 };
 		plant_structure.push_back(s);
@@ -178,61 +193,64 @@ public:
 
 	void grow(Display* display)
 	{
-		L_Systems::L_System system{ species->get_DNA(),&command_state };
-		system.run(1);
-
-		const int stick_length{ 10 };
-
-		try
+		if (energy > MAX_ENERGY_DEBT)
 		{
+			L_Systems::L_System system{ species->get_DNA(),&command_state };
+			system.run(1);
+
 			Cord new_position{};
 			for (L_Systems::alphabet_T Cmd : command_state)
 			{
 				switch (static_cast<Cmd_lang>(Cmd))
 				{
 				case Cmd_lang::leaf:
-					display->set_pen(3, { 0.0,0.95,0.0 }, 3);
+					energy -= COST_OF_LEAF;
+
+					display->set_pen(3, LEAF_COLOUR, 3);
 					display->draw_line(at.x - 1, at.y, at.x + 1, at.y + 1);
 					leafs.push_back(at);
 					break;
 				case Cmd_lang::stick:
-					new_position.x = at.x + stick_length * std::sin(pointing);
-					new_position.y = at.y + stick_length * std::cos(pointing);
-					display->set_pen(3, { 0.95,0.0,0.0 }, 2);
+					energy -= COST_OF_STICK;
+
+					new_position.x = at.x + STICK_LENGTH * std::sin(pointing);
+					new_position.y = at.y + STICK_LENGTH * std::cos(pointing);
+					display->set_pen(3, STICK_COLOUR, 2);
 					display->draw_line(at.x, at.y, new_position.x, new_position.y);
 					plant_structure.push_back({ new_position,pointing });
 					at = new_position;
 					index += 1;
 					break;
 				case Cmd_lang::left:
-					pointing += 0.2;
+					pointing += ROTATION_RADS;
 					break;
 				case Cmd_lang::right:
-					pointing -= 0.2;
+					pointing -= ROTATION_RADS;
 					break;
 				case Cmd_lang::next:
-					index += 1;
+					if (index + 1 < plant_structure.size())
+						index += 1;
 					at = plant_structure[index].from;
 					pointing = plant_structure[index].pointing;
 					break;
 				case Cmd_lang::last:
-					index -= 1;
+					if (index >= 1)
+						index -= 1;
 					at = plant_structure[index].from;
 					pointing = plant_structure[index].pointing;
 					break;
 				case Cmd_lang::enter_seed_ballot:
+					if (energy >= 0)
+					{
+						energy -= COST_OF_SEED_BALLOT;
+						species->seed_ballot_points += 1;
+					}
 					break;
 				default:
 					break;
 				}
 			}
-		}
-	
-		catch (const std::exception& e)
-		{
-			std::cerr << e.what() << std::endl;
-		}
-		
+		}	
 	}
 
 	std::vector <Cord> leafs{};
@@ -242,6 +260,7 @@ public:
 	Cord at;
 	float pointing;
 
+	int energy{ 0 };
 private:
 	Species* species;
 	int x_planted_position;
@@ -269,11 +288,18 @@ public:
 		draw_background();
 		draw_ground();
 		std::cout << "--New Day-- " << "\n";
-		growing();
-		std::cout << "Number of Living Plants: " << plants.size() << "\n";
-		std::cout << "Number of Living Species: " << species.size() << "\n";
+		for (int segment{ 0 }; segment < day_length; segment++)
+		{
+			growth();
+			sunlight();
+		}
+		std::cout << "Number of Species: " << species.size() << "\n";
 		for (Plant* plant : plants) delete plant;
 		plants.clear();
+
+		evalate_winners();
+		std::cout << "Number of Species after Evaluation: " << species.size() << "\n";
+		new_mutations();
 		plant_seeds();
 	}
 
@@ -294,21 +320,75 @@ private:
 
 	std::default_random_engine generator;
 
-	void growing()
+	void growth()
 	{
-		for (int segment{ 0 }; segment < day_length; segment++)
+		for (Plant* plant : plants) plant->grow(display);
+	}
+	void sunlight()
+	{
+		struct HighScore 
 		{
-			for (Plant* plant : plants) plant->grow(display);
+			Plant* plant{ NULL };
+			int height{ GROUND_HEIGHT };
+		};
+		std::vector<HighScore> sunlight_lines{};
+		sunlight_lines.resize(display->get_screen_width());
+
+		for (Plant* plant : plants)
+		{
+			for (auto& leaf : plant->leafs)
+			{
+				if (leaf.x >= 0 && leaf.x < display->get_screen_width())
+				{
+					if (leaf.y > sunlight_lines[leaf.x].height)
+					{
+						sunlight_lines[leaf.x].plant = plant;
+						sunlight_lines[leaf.x].height = leaf.y;
+					}
+				}
+			}
 		}
+
+		for (HighScore winner : sunlight_lines)
+		{
+			if (winner.plant != NULL)
+				winner.plant->energy += 1;
+		}
+
 	}
 
+	void evalate_winners()
+	{
+		std::sort(species.begin(), species.end(), [](Species* s1, Species* s2) {return s1->seed_ballot_points > s2->seed_ballot_points; });
+
+		for (size_t index{ species.size()-1}; index > 0; index--)
+		{
+			if (species[index]->seed_ballot_points > 0)
+				break;
+
+			delete species[index];
+			species.erase(species.begin() + index);
+		}
+
+		for (Species* specie : species) specie->seed_ballot_points = 0;
+	}
+	void new_mutations()
+	{
+		//winner gets one
+		species.push_back(species[0]->Mutation(generator()));
+
+		//random one
+		std::uniform_int_distribution<int> species_distribution(0, species.size()-1);
+		species.push_back(species[species_distribution(generator)]->Mutation(generator()));
+		
+	}
 	void plant_seeds()
 	{
-		species.push_back(species[species.size()-1]->Mutation(generator()));
+		std::uniform_int_distribution<int> width_distribution(0, display->get_screen_width());
+
 		for (Species* specie : species)
 		{
-			std::uniform_int_distribution<int> distribution(0, display->get_screen_width());
-			plants.push_back(new Plant(specie,distribution(generator), 50));
+			plants.push_back(new Plant(specie, width_distribution(generator), 50));
 		}
 	}
 
@@ -335,15 +415,14 @@ private:
 
 	void draw_ground()
 	{
-		const glm::vec3 brown{ 139 / 256.0,69 / 256.0,4 / 256.0 };
-		display->set_pen(50, brown,1);
-		display->draw_line(0, 25, display->get_screen_width(), 25);
+		
+		display->set_pen(GROUND_HEIGHT, GROUND_COLOUR,1);
+		display->draw_line(0, GROUND_HEIGHT/2, display->get_screen_width(), GROUND_HEIGHT/2);
 	}
-
 	void draw_background()
 	{
-		const glm::vec3 blue{ 16 / 256.0,111 / 256,146 / 256.0 };
-		display->set_pen(display->get_screen_height(), blue,0);
+
+		display->set_pen(display->get_screen_height(), SKY_COLOUR,0);
 		display->draw_line(0, display->get_screen_height()/2, display->get_screen_width(), display->get_screen_height()/2);
 	}
 };

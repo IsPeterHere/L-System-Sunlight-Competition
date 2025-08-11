@@ -28,33 +28,15 @@
     <Filter Include="Header Files\L-System-Sunlight-Competition">
       <UniqueIdentifier>{fc95c8b3-b4ff-4ee7-9f2b-8c19011e0187}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\VKInterface">
+      <UniqueIdentifier>{7e584d60-cdd3-474d-9db9-cd349f6cc785}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\VKInterface">
+      <UniqueIdentifier>{9f9a120f-9e2e-49f5-aced-5399d8236e72}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Example.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Window.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="VulkanInstance.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Device.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SwapChain.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Pipeline.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Buffers.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Vertex.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Command.cpp">
+    <ClCompile Include="Main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ImageManager.cpp">
@@ -75,6 +57,30 @@
     <ClCompile Include="Camera.h">
       <Filter>Header Files\Utils</Filter>
     </ClCompile>
+    <ClCompile Include="Buffers.cpp">
+      <Filter>Source Files\VKInterface</Filter>
+    </ClCompile>
+    <ClCompile Include="Command.cpp">
+      <Filter>Source Files\VKInterface</Filter>
+    </ClCompile>
+    <ClCompile Include="Device.cpp">
+      <Filter>Source Files\VKInterface</Filter>
+    </ClCompile>
+    <ClCompile Include="Pipeline.cpp">
+      <Filter>Source Files\VKInterface</Filter>
+    </ClCompile>
+    <ClCompile Include="SwapChain.cpp">
+      <Filter>Source Files\VKInterface</Filter>
+    </ClCompile>
+    <ClCompile Include="Vertex.cpp">
+      <Filter>Source Files\VKInterface</Filter>
+    </ClCompile>
+    <ClCompile Include="VulkanInstance.cpp">
+      <Filter>Source Files\VKInterface</Filter>
+    </ClCompile>
+    <ClCompile Include="Window.cpp">
+      <Filter>Source Files\VKInterface</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="shader.vert">
@@ -88,17 +94,17 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="MYR.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="vk_mem_alloc.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\L-System-Sunlight-Competition\ComM.h">
       <Filter>Header Files\L-System-Sunlight-Competition</Filter>
     </ClInclude>
     <ClInclude Include="..\L-System-Sunlight-Competition\Plant.h">
       <Filter>Header Files\L-System-Sunlight-Competition</Filter>
+    </ClInclude>
+    <ClInclude Include="vk_mem_alloc.h">
+      <Filter>Header Files\VKInterface</Filter>
+    </ClInclude>
+    <ClInclude Include="MYR.h">
+      <Filter>Header Files\VKInterface</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
