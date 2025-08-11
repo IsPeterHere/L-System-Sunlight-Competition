@@ -77,8 +77,8 @@ public:
     {
         while (!glfwWindowShouldClose(window->getHandle()))
         {
-            std::chrono::steady_clock::time_point  startTime = std::chrono::high_resolution_clock::now();
-            float f_call_time_ellapsed{ 0 };
+            static std::chrono::steady_clock::time_point  startTime = std::chrono::high_resolution_clock::now();
+            static float f_call_time_ellapsed{ 0 };
 
             std::chrono::steady_clock::time_point  currentTime = std::chrono::high_resolution_clock::now();
             f_call_time_ellapsed += std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();

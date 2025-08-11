@@ -136,7 +136,8 @@ public:
 				}
 				else
 				{
-					to.erase(index);
+					if (to.size() > 0)
+						to.erase(index);
 				}
 			}
 			new_DNA->add(static_cast<L_Systems::alphabet_T>(cmd), to);
