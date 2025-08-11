@@ -326,7 +326,7 @@ public:
         instance = this;
         world.start();
         app.boot_up();
-        app.run(&update,1000);
+        app.run(&update,100);
         world.end();
     }
 

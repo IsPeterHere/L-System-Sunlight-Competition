@@ -136,7 +136,8 @@ public:
 				}
 				else
 				{
-					to.erase(index);
+					if (to.size() > 0)
+						to.erase(index);
 				}
 			}
 			new_DNA->add(static_cast<L_Systems::alphabet_T>(cmd), to);
@@ -182,47 +183,56 @@ public:
 
 		const int stick_length{ 10 };
 
-		Cord new_position{};
-		for (L_Systems::alphabet_T Cmd : command_state)
+		try
 		{
-			switch (static_cast<Cmd_lang>(Cmd))
+			Cord new_position{};
+			for (L_Systems::alphabet_T Cmd : command_state)
 			{
-			case Cmd_lang::leaf:
-				display->set_pen(3, { 0.0,0.95,0.0 }, 3);
-				display->draw_line(at.x - 1, at.y, at.x + 1, at.y+1);
-				leafs.push_back(at);
-				break;
-			case Cmd_lang::stick:
-				new_position.x = at.x + stick_length * std::sin(pointing);
-				new_position.y = at.y + stick_length * std::cos(pointing);
-				display->set_pen(3, {0.95,0.0,0.0},2);
-				display->draw_line(at.x, at.y, new_position.x, new_position.y);
-				plant_structure.push_back({ new_position,pointing });
-				at = new_position;
-				index += 1;
-				break;
-			case Cmd_lang::left:
-				pointing += 0.2;
-				break;
-			case Cmd_lang::right:
-				pointing -= 0.2;
-				break;
-			case Cmd_lang::next:
-				index += 1;
-				at = plant_structure[index].from;
-				pointing = plant_structure[index].pointing;
-				break;
-			case Cmd_lang::last:
-				index -= 1;
-				at = plant_structure[index].from;
-				pointing = plant_structure[index].pointing;
-				break;
-			case Cmd_lang::enter_seed_ballot:
-				break;
-			default:
-				break;
+				switch (static_cast<Cmd_lang>(Cmd))
+				{
+				case Cmd_lang::leaf:
+					display->set_pen(3, { 0.0,0.95,0.0 }, 3);
+					display->draw_line(at.x - 1, at.y, at.x + 1, at.y + 1);
+					leafs.push_back(at);
+					break;
+				case Cmd_lang::stick:
+					new_position.x = at.x + stick_length * std::sin(pointing);
+					new_position.y = at.y + stick_length * std::cos(pointing);
+					display->set_pen(3, { 0.95,0.0,0.0 }, 2);
+					display->draw_line(at.x, at.y, new_position.x, new_position.y);
+					plant_structure.push_back({ new_position,pointing });
+					at = new_position;
+					index += 1;
+					break;
+				case Cmd_lang::left:
+					pointing += 0.2;
+					break;
+				case Cmd_lang::right:
+					pointing -= 0.2;
+					break;
+				case Cmd_lang::next:
+					index += 1;
+					at = plant_structure[index].from;
+					pointing = plant_structure[index].pointing;
+					break;
+				case Cmd_lang::last:
+					index -= 1;
+					at = plant_structure[index].from;
+					pointing = plant_structure[index].pointing;
+					break;
+				case Cmd_lang::enter_seed_ballot:
+					break;
+				default:
+					break;
+				}
 			}
 		}
+	
+		catch (const std::exception& e)
+		{
+			std::cerr << e.what() << std::endl;
+		}
+		
 	}
 
 	std::vector <Cord> leafs{};
@@ -252,7 +262,7 @@ public:
 	}
 	void day()
 	{
-		static std::random_device rnd;
+		std::random_device rnd;
 		generator.seed(rnd());
 
 		display->clear_screen();
