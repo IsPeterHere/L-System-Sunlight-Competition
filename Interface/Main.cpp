@@ -202,7 +202,7 @@ private:
         createSyncObjects();
     }
 
-    glm::vec4 values { 0.10, 0.10, 0.9,1 };
+    glm::vec4 values { 1.0, 1.0, 1.0 ,1 };
     void createPushConstants()
     {
         vary = MYR::PushConstant{ 0,16,&values,VK_SHADER_STAGE_FRAGMENT_BIT};
