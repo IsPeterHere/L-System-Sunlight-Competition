@@ -160,7 +160,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\L-System-Sunlight-Competition\ComM.h" />
-    <ClInclude Include="..\L-System-Sunlight-Competition\Plant.h" />
+    <ClInclude Include="..\L-System-Sunlight-Competition\LSSC.h" />
     <ClInclude Include="MYR.h" />
     <ClInclude Include="vk_mem_alloc.h" />
   </ItemGroup>

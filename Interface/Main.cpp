@@ -7,7 +7,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <chrono>
-#include".../../../L-System-Sunlight-Competition/Plant.h"
+#include".../../../L-System-Sunlight-Competition/LSSC.h"
 
 const bool enableValidationLayers{true};
 
@@ -121,8 +121,10 @@ public:
     }
 
     VkExtent2D getExtent() { return swapChain->getExtent(); }
-private:
 
+    Camera* camera;
+    Control* control;
+private:
     MYR::Window window;
     MYR::Core core;
     MYR::Device device;
@@ -132,8 +134,6 @@ private:
     MYR::ImageManager imageManager;
     MYR::BufferManager bufferManager;
     MYR::Buffers buffers;
-    Camera* camera;
-    Control* control;
 
     std::vector<VkSemaphore> imageAvailableSemaphores;
     std::vector<VkSemaphore> renderFinishedSemaphores;
@@ -326,14 +326,17 @@ public:
         instance = this;
         world.start();
         app.boot_up();
-        app.run(&update,100);
+        app.run(&update,10);
         world.end();
     }
 
     static void update()
     {
         instance->display.update_screen_dimensions(instance->app.getExtent().width, instance->app.getExtent().height);
-        instance->world.day();
+        if (instance->app.control->t)
+            instance->world.segment_day();
+        else
+            instance->world.day(instance->app.control->g);
     }
 
     ExampleApplication app{};

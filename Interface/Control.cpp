@@ -88,6 +88,12 @@ void Control::key_input(GLFWwindow* window, int key, int scancode, int action, i
 			case GLFW_KEY_D:
 				control->d = true;
 				break;
+			case GLFW_KEY_T:
+				control->t = true;
+				break;
+			case GLFW_KEY_G:
+				control->g = true;
+				break;
 			default:
 				break;
 			}
@@ -108,6 +114,12 @@ void Control::key_input(GLFWwindow* window, int key, int scancode, int action, i
 				break;
 			case GLFW_KEY_D:
 				control->d = false;
+				break;
+			case GLFW_KEY_T:
+				control->t = false;
+				break;
+			case GLFW_KEY_G:
+				control->g = false;
 				break;
 			default:
 				break;

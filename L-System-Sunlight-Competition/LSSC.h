@@ -7,17 +7,26 @@
 #include"..\Interface\MYR.h"
 #include "ComM.h"
 
-const int MAX_ENERGY_DEBT{ -10 };
-const int COST_OF_STICK{ 1 };
-const int COST_OF_LEAF{ 1 };
-const int COST_OF_SEED_BALLOT{ 1 };
+const int DAY_LENGTH{ 10 };
+
+const float MAX_ENERGY_DEBT{ -10 };
+
+const float DEPTH_COST_OF_STICK{ 0.1 };
+const float COST_OF_STICK{ 1 };
+const float COST_OF_LEAF{ 1 };
+const float COST_OF_SEED_BALLOT{ 1 };
+
+const int NO_OF_WINNERS{ 1 };
+const int NO_OF_LOSERS{ 1 };
+const int NO_OF_RANDOM_NEW{ 1 };
 
 const float ROTATION_RADS{ 0.2f };
-const int STICK_LENGTH{ 10 };
+const float STICK_LENGTH{ 10 };
 
 const int GROUND_HEIGHT{ 50 };
-const glm::vec3 GROUND_COLOUR{ 139 / 255.0, 69 / 255.0, 4 / 255.0 };
-const glm::vec3 SKY_COLOUR{ 0 / 255.0, 10 / 255.0, 200 / 255.0 };
+constexpr glm::vec3 RGB(int r, int g, int b) { return { r / 255.0, g / 255.0, b / 255.0 }; }
+const glm::vec3 GROUND_COLOUR{ RGB(139,69,4)};
+const glm::vec3 SKY_COLOUR{ RGB(0,20,150) };
 const glm::vec3 STICK_COLOUR{ 0.95,0.0,0.0 };
 const glm::vec3 LEAF_COLOUR{ 0.0,0.95,0.0 };
 
@@ -161,6 +170,78 @@ public:
 
 	L_Systems::Rules* get_DNA() { return &DNA; }
 	int seed_ballot_points{ 0 };
+
+	void PrintDNA()
+	{
+		std::cout << "DNA RULES:" << "\n";
+
+		auto CMD = [](Cmd_lang in)
+			{
+				switch (static_cast<Cmd_lang>(in))
+				{
+				case(Cmd_lang::seed):
+					std::cout << "SEED";
+					break;
+				case(Cmd_lang::leaf):
+					std::cout << "LEAF";
+					break;
+				case(Cmd_lang::stick):
+					std::cout << "STICK";
+					break;
+				case(Cmd_lang::left):
+					std::cout << "LEFT";
+					break;
+				case(Cmd_lang::right):
+					std::cout << "RIGHT";
+					break;
+				case(Cmd_lang::next):
+					std::cout << "NEXT";
+					break;
+				case(Cmd_lang::last):
+					std::cout << "LAST";
+					break;
+				case(Cmd_lang::enter_seed_ballot):
+					std::cout << "BALLOT";
+					break;
+				case(Cmd_lang::a):
+					std::cout << "a";
+					break;
+				case(Cmd_lang::b):
+					std::cout << "b";
+					break;
+				case(Cmd_lang::c):
+					std::cout << "c";
+					break;
+				case(Cmd_lang::d):
+					std::cout << "d";
+					break;
+				case(Cmd_lang::e):
+					std::cout << "e";
+					break;
+				case(Cmd_lang::f):
+					std::cout << "f";
+					break;
+				default:
+					throw std::runtime_error("UNRECOGNISED CMD");
+				}
+			};
+		auto TO = [](std::vector<L_Systems::alphabet_T>* to, void (*DISP)(Cmd_lang in))
+			{
+				for (L_Systems::alphabet_T cmd : *to)
+				{
+					DISP(static_cast<Cmd_lang>(cmd));
+					std::cout << " ";
+				}
+			};
+
+		for (int i{ 0 }; static_cast<Cmd_lang>(i) < Cmd_lang::NUMBER_OF_UNIQUE_COMMANDS; i++)
+		{
+			CMD(static_cast<Cmd_lang>(i));
+			std::cout << " -> ";
+			TO(DNA[static_cast<L_Systems::alphabet_T>(i)],CMD);
+			std::cout << "\n";
+		}
+	}
 private:
 	std::default_random_engine generator;
 
@@ -180,20 +261,22 @@ class Plant
 	{
 		Cord from;
 		float pointing;
+		int depth;
 	};
 
 public:
 	Plant(Species* species, float x_planted_position, float y_planted_position) : species(species), x_planted_position(x_planted_position)
 	{
-		stick s{ {x_planted_position,y_planted_position},0 };
+		stick s{ {x_planted_position,y_planted_position},0,0 };
 		plant_structure.push_back(s);
 		at = { plant_structure[index].from };
 		pointing = { plant_structure[index].pointing };
+		depth = { plant_structure[index].depth };
 	}
 
 	void grow(Display* display)
 	{
-		if (energy > MAX_ENERGY_DEBT)
+		if (energy > MAX_ENERGY_DEBT && command_state.size() < 1000)
 		{
 			L_Systems::L_System system{ species->get_DNA(),&command_state };
 			system.run(1);
@@ -211,14 +294,15 @@ public:
 					leafs.push_back(at);
 					break;
 				case Cmd_lang::stick:
-					energy -= COST_OF_STICK;
+					energy -= COST_OF_STICK + depth * DEPTH_COST_OF_STICK;
 
 					new_position.x = at.x + STICK_LENGTH * std::sin(pointing);
 					new_position.y = at.y + STICK_LENGTH * std::cos(pointing);
 					display->set_pen(3, STICK_COLOUR, 2);
 					display->draw_line(at.x, at.y, new_position.x, new_position.y);
-					plant_structure.push_back({ new_position,pointing });
+					plant_structure.push_back({ new_position,pointing,depth + 1});
 					at = new_position;
+					depth += 1;
 					index += 1;
 					break;
 				case Cmd_lang::left:
@@ -232,15 +316,17 @@ public:
 						index += 1;
 					at = plant_structure[index].from;
 					pointing = plant_structure[index].pointing;
+					depth = plant_structure[index].depth;
 					break;
 				case Cmd_lang::last:
 					if (index >= 1)
 						index -= 1;
 					at = plant_structure[index].from;
 					pointing = plant_structure[index].pointing;
+					depth = plant_structure[index].depth;
 					break;
 				case Cmd_lang::enter_seed_ballot:
-					if (energy >= 0)
+					if (energy >= COST_OF_SEED_BALLOT)
 					{
 						energy -= COST_OF_SEED_BALLOT;
 						species->seed_ballot_points += 1;
@@ -259,8 +345,9 @@ public:
 	size_t index{ 0 };
 	Cord at;
 	float pointing;
+	int depth;
 
-	int energy{ 0 };
+	double energy{ 0 };
 private:
 	Species* species;
 	int x_planted_position;
@@ -279,28 +366,74 @@ public:
 		starting_species();
 		plant_seeds();
 	}
-	void day()
-	{
-		std::random_device rnd;
-		generator.seed(rnd());
 
-		display->clear_screen();
-		draw_background();
-		draw_ground();
+	void day(bool printDNA = false)
+	{
+		if (segment == 0)
+		{
+			std::random_device rnd;
+			generator.seed(rnd());
+
+			display->clear_screen();
+			draw_background();
+			draw_ground();
+		}
+
 		std::cout << "--New Day-- " << "\n";
-		for (int segment{ 0 }; segment < day_length; segment++)
+		while (segment<DAY_LENGTH)
 		{
 			growth();
 			sunlight();
+			segment += 1;
 		}
+
+		segment = 0;
 		std::cout << "Number of Species: " << species.size() << "\n";
 		for (Plant* plant : plants) delete plant;
 		plants.clear();
 
 		evalate_winners();
 		std::cout << "Number of Species after Evaluation: " << species.size() << "\n";
+
+		if (printDNA)
+		{
+			std::cout << "WINNER ";
+			species[0]->PrintDNA();
+		}
+
 		new_mutations();
 		plant_seeds();
+	}
+
+	void segment_day()
+	{
+		if (segment == 0)
+		{
+			std::random_device rnd;
+			generator.seed(rnd());
+
+			display->clear_screen();
+			draw_background();
+			draw_ground();
+			std::cout << "--New Day-- " << "\n";
+			std::cout << "Number of Species: " << species.size() << "\n";
+		}
+
+		growth();
+		sunlight();
+		segment += 1;
+
+		if (segment >= DAY_LENGTH)
+		{
+			segment = 0;
+			for (Plant* plant : plants) delete plant;
+			plants.clear();
+
+			evalate_winners();
+			std::cout << "Number of Species after Evaluation: " << species.size() << "\n";
+			new_mutations();
+			plant_seeds();
+		}
 	}
 
 	void end()
@@ -316,9 +449,9 @@ private:
 	std::vector<Species*> species{};
 	std::vector<Plant*> plants{};
 
-	const int day_length{ 10 };
-
 	std::default_random_engine generator;
+
+	int segment{ 0 };
 
 	void growth()
 	{
@@ -360,7 +493,7 @@ private:
 	void evalate_winners()
 	{
 		std::sort(species.begin(), species.end(), [](Species* s1, Species* s2) {return s1->seed_ballot_points > s2->seed_ballot_points; });
-
+		
 		for (size_t index{ species.size()-1}; index > 0; index--)
 		{
 			if (species[index]->seed_ballot_points > 0)
@@ -370,16 +503,27 @@ private:
 			species.erase(species.begin() + index);
 		}
 
+		if (species.size() > NO_OF_LOSERS)
+		{
+			for (int i{ 0 }; i < NO_OF_LOSERS; i++)
+			{
+				delete species[species.size()-1];
+				species.erase(species.end()-1);
+			}
+		}
+
 		for (Species* specie : species) specie->seed_ballot_points = 0;
 	}
 	void new_mutations()
 	{
-		//winner gets one
-		species.push_back(species[0]->Mutation(generator()));
+		//winners get one
+		for (int i{0}; i< NO_OF_WINNERS;i++)
+			species.push_back(species[0]->Mutation(generator()));
 
 		//random one
 		std::uniform_int_distribution<int> species_distribution(0, species.size()-1);
-		species.push_back(species[species_distribution(generator)]->Mutation(generator()));
+		for (int i{ 0 }; i < NO_OF_RANDOM_NEW; i++)
+			species.push_back(species[species_distribution(generator)]->Mutation(generator()));
 		
 	}
 	void plant_seeds()
