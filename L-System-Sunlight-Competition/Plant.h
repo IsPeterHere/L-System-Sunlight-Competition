@@ -9,17 +9,19 @@
 
 const int DAY_LENGTH{ 10 };
 
-const int MAX_ENERGY_DEBT{ -10 };
-const int COST_OF_STICK{ 1 };
-const int COST_OF_LEAF{ 1 };
-const int COST_OF_SEED_BALLOT{ 1 };
+const float MAX_ENERGY_DEBT{ -10 };
+
+const float DEPTH_COST_OF_STICK{ 0.1 };
+const float COST_OF_STICK{ 1 };
+const float COST_OF_LEAF{ 1 };
+const float COST_OF_SEED_BALLOT{ 1 };
 
 const int NO_OF_WINNERS{ 1 };
 const int NO_OF_LOSERS{ 1 };
 const int NO_OF_RANDOM_NEW{ 1 };
 
 const float ROTATION_RADS{ 0.2f };
-const int STICK_LENGTH{ 10 };
+const float STICK_LENGTH{ 10 };
 
 const int GROUND_HEIGHT{ 50 };
 constexpr glm::vec3 RGB(int r, int g, int b) { return { r / 255.0, g / 255.0, b / 255.0 }; }
@@ -187,15 +189,17 @@ class Plant
 	{
 		Cord from;
 		float pointing;
+		int depth;
 	};
 
 public:
 	Plant(Species* species, float x_planted_position, float y_planted_position) : species(species), x_planted_position(x_planted_position)
 	{
-		stick s{ {x_planted_position,y_planted_position},0 };
+		stick s{ {x_planted_position,y_planted_position},0,0 };
 		plant_structure.push_back(s);
 		at = { plant_structure[index].from };
 		pointing = { plant_structure[index].pointing };
+		depth = { plant_structure[index].depth };
 	}
 
 	void grow(Display* display)
@@ -218,14 +222,15 @@ public:
 					leafs.push_back(at);
 					break;
 				case Cmd_lang::stick:
-					energy -= COST_OF_STICK;
+					energy -= COST_OF_STICK + depth * DEPTH_COST_OF_STICK;
 
 					new_position.x = at.x + STICK_LENGTH * std::sin(pointing);
 					new_position.y = at.y + STICK_LENGTH * std::cos(pointing);
 					display->set_pen(3, STICK_COLOUR, 2);
 					display->draw_line(at.x, at.y, new_position.x, new_position.y);
-					plant_structure.push_back({ new_position,pointing });
+					plant_structure.push_back({ new_position,pointing,depth + 1});
 					at = new_position;
+					depth += 1;
 					index += 1;
 					break;
 				case Cmd_lang::left:
@@ -239,12 +244,14 @@ public:
 						index += 1;
 					at = plant_structure[index].from;
 					pointing = plant_structure[index].pointing;
+					depth = plant_structure[index].depth;
 					break;
 				case Cmd_lang::last:
 					if (index >= 1)
 						index -= 1;
 					at = plant_structure[index].from;
 					pointing = plant_structure[index].pointing;
+					depth = plant_structure[index].depth;
 					break;
 				case Cmd_lang::enter_seed_ballot:
 					if (energy >= COST_OF_SEED_BALLOT)
@@ -266,8 +273,9 @@ public:
 	size_t index{ 0 };
 	Cord at;
 	float pointing;
+	int depth;
 
-	int energy{ 0 };
+	double energy{ 0 };
 private:
 	Species* species;
 	int x_planted_position;
