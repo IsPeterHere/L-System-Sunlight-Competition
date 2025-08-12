@@ -12,12 +12,17 @@ const int COST_OF_STICK{ 1 };
 const int COST_OF_LEAF{ 1 };
 const int COST_OF_SEED_BALLOT{ 1 };
 
+const int NO_OF_WINNERS{ 1 };
+const int NO_OF_LOSERS{ 1 };
+const int NO_OF_RANDOM_NEW{ 1 };
+
 const float ROTATION_RADS{ 0.2f };
 const int STICK_LENGTH{ 10 };
 
 const int GROUND_HEIGHT{ 50 };
-const glm::vec3 GROUND_COLOUR{ 139 / 255.0, 69 / 255.0, 4 / 255.0 };
-const glm::vec3 SKY_COLOUR{ 0 / 255.0, 10 / 255.0, 200 / 255.0 };
+constexpr glm::vec3 RGB(int r, int g, int b) { return { r / 255.0, g / 255.0, b / 255.0 }; }
+const glm::vec3 GROUND_COLOUR{ RGB(139,69,4)};
+const glm::vec3 SKY_COLOUR{ RGB(0,20,150) };
 const glm::vec3 STICK_COLOUR{ 0.95,0.0,0.0 };
 const glm::vec3 LEAF_COLOUR{ 0.0,0.95,0.0 };
 
@@ -240,7 +245,7 @@ public:
 					pointing = plant_structure[index].pointing;
 					break;
 				case Cmd_lang::enter_seed_ballot:
-					if (energy >= 0)
+					if (energy >= COST_OF_SEED_BALLOT)
 					{
 						energy -= COST_OF_SEED_BALLOT;
 						species->seed_ballot_points += 1;
@@ -370,16 +375,27 @@ private:
 			species.erase(species.begin() + index);
 		}
 
+		if (species.size() > NO_OF_LOSERS)
+		{
+			for (int i{ 0 }; i < NO_OF_LOSERS; i++)
+			{
+				delete species[species.size()-1];
+				species.erase(species.end()-1);
+			}
+		}
+
 		for (Species* specie : species) specie->seed_ballot_points = 0;
 	}
 	void new_mutations()
 	{
 		//winner gets one
-		species.push_back(species[0]->Mutation(generator()));
+		for (int i{0}; i< NO_OF_WINNERS;i++)
+			species.push_back(species[0]->Mutation(generator()));
 
 		//random one
 		std::uniform_int_distribution<int> species_distribution(0, species.size()-1);
-		species.push_back(species[species_distribution(generator)]->Mutation(generator()));
+		for (int i{ 0 }; i < NO_OF_RANDOM_NEW; i++)
+			species.push_back(species[species_distribution(generator)]->Mutation(generator()));
 		
 	}
 	void plant_seeds()
