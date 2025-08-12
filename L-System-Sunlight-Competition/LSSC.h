@@ -170,6 +170,78 @@ public:
 
 	L_Systems::Rules* get_DNA() { return &DNA; }
 	int seed_ballot_points{ 0 };
+
+	void PrintDNA()
+	{
+		std::cout << "DNA RULES:" << "\n";
+
+		auto CMD = [](Cmd_lang in)
+			{
+				switch (static_cast<Cmd_lang>(in))
+				{
+				case(Cmd_lang::seed):
+					std::cout << "SEED";
+					break;
+				case(Cmd_lang::leaf):
+					std::cout << "LEAF";
+					break;
+				case(Cmd_lang::stick):
+					std::cout << "STICK";
+					break;
+				case(Cmd_lang::left):
+					std::cout << "LEFT";
+					break;
+				case(Cmd_lang::right):
+					std::cout << "RIGHT";
+					break;
+				case(Cmd_lang::next):
+					std::cout << "NEXT";
+					break;
+				case(Cmd_lang::last):
+					std::cout << "LAST";
+					break;
+				case(Cmd_lang::enter_seed_ballot):
+					std::cout << "BALLOT";
+					break;
+				case(Cmd_lang::a):
+					std::cout << "a";
+					break;
+				case(Cmd_lang::b):
+					std::cout << "b";
+					break;
+				case(Cmd_lang::c):
+					std::cout << "c";
+					break;
+				case(Cmd_lang::d):
+					std::cout << "d";
+					break;
+				case(Cmd_lang::e):
+					std::cout << "e";
+					break;
+				case(Cmd_lang::f):
+					std::cout << "f";
+					break;
+				default:
+					throw std::runtime_error("UNRECOGNISED CMD");
+				}
+			};
+		auto TO = [](std::vector<L_Systems::alphabet_T>* to, void (*DISP)(Cmd_lang in))
+			{
+				for (L_Systems::alphabet_T cmd : *to)
+				{
+					DISP(static_cast<Cmd_lang>(cmd));
+					std::cout << " ";
+				}
+			};
+
+		for (int i{ 0 }; static_cast<Cmd_lang>(i) < Cmd_lang::NUMBER_OF_UNIQUE_COMMANDS; i++)
+		{
+			CMD(static_cast<Cmd_lang>(i));
+			std::cout << " -> ";
+			TO(DNA[static_cast<L_Systems::alphabet_T>(i)],CMD);
+			std::cout << "\n";
+		}
+	}
 private:
 	std::default_random_engine generator;
 
@@ -295,7 +367,7 @@ public:
 		plant_seeds();
 	}
 
-	void day()
+	void day(bool printDNA = false)
 	{
 		if (segment == 0)
 		{
@@ -322,6 +394,13 @@ public:
 
 		evalate_winners();
 		std::cout << "Number of Species after Evaluation: " << species.size() << "\n";
+
+		if (printDNA)
+		{
+			std::cout << "WINNER ";
+			species[0]->PrintDNA();
+		}
+
 		new_mutations();
 		plant_seeds();
 	}
@@ -414,7 +493,7 @@ private:
 	void evalate_winners()
 	{
 		std::sort(species.begin(), species.end(), [](Species* s1, Species* s2) {return s1->seed_ballot_points > s2->seed_ballot_points; });
-
+		
 		for (size_t index{ species.size()-1}; index > 0; index--)
 		{
 			if (species[index]->seed_ballot_points > 0)
@@ -437,7 +516,7 @@ private:
 	}
 	void new_mutations()
 	{
-		//winner gets one
+		//winners get one
 		for (int i{0}; i< NO_OF_WINNERS;i++)
 			species.push_back(species[0]->Mutation(generator()));
 

@@ -7,7 +7,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <chrono>
-#include".../../../L-System-Sunlight-Competition/Plant.h"
+#include".../../../L-System-Sunlight-Competition/LSSC.h"
 
 const bool enableValidationLayers{true};
 
@@ -336,7 +336,7 @@ public:
         if (instance->app.control->t)
             instance->world.segment_day();
         else
-            instance->world.day();
+            instance->world.day(instance->app.control->g);
     }
 
     ExampleApplication app{};

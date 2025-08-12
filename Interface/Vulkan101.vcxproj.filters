@@ -97,7 +97,7 @@
     <ClInclude Include="..\L-System-Sunlight-Competition\ComM.h">
       <Filter>Header Files\L-System-Sunlight-Competition</Filter>
     </ClInclude>
-    <ClInclude Include="..\L-System-Sunlight-Competition\Plant.h">
+    <ClInclude Include="..\L-System-Sunlight-Competition\LSSC.h">
       <Filter>Header Files\L-System-Sunlight-Competition</Filter>
     </ClInclude>
     <ClInclude Include="vk_mem_alloc.h">
