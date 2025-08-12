@@ -7,6 +7,8 @@
 #include"..\Interface\MYR.h"
 #include "ComM.h"
 
+const int DAY_LENGTH{ 10 };
+
 const int MAX_ENERGY_DEBT{ -10 };
 const int COST_OF_STICK{ 1 };
 const int COST_OF_LEAF{ 1 };
@@ -284,20 +286,28 @@ public:
 		starting_species();
 		plant_seeds();
 	}
+
 	void day()
 	{
-		std::random_device rnd;
-		generator.seed(rnd());
+		if (segment == 0)
+		{
+			std::random_device rnd;
+			generator.seed(rnd());
 
-		display->clear_screen();
-		draw_background();
-		draw_ground();
+			display->clear_screen();
+			draw_background();
+			draw_ground();
+		}
+
 		std::cout << "--New Day-- " << "\n";
-		for (int segment{ 0 }; segment < day_length; segment++)
+		while (segment<DAY_LENGTH)
 		{
 			growth();
 			sunlight();
+			segment += 1;
 		}
+
+		segment = 0;
 		std::cout << "Number of Species: " << species.size() << "\n";
 		for (Plant* plant : plants) delete plant;
 		plants.clear();
@@ -306,6 +316,37 @@ public:
 		std::cout << "Number of Species after Evaluation: " << species.size() << "\n";
 		new_mutations();
 		plant_seeds();
+	}
+
+	void segment_day()
+	{
+		if (segment == 0)
+		{
+			std::random_device rnd;
+			generator.seed(rnd());
+
+			display->clear_screen();
+			draw_background();
+			draw_ground();
+			std::cout << "--New Day-- " << "\n";
+			std::cout << "Number of Species: " << species.size() << "\n";
+		}
+
+		growth();
+		sunlight();
+		segment += 1;
+
+		if (segment >= DAY_LENGTH)
+		{
+			segment = 0;
+			for (Plant* plant : plants) delete plant;
+			plants.clear();
+
+			evalate_winners();
+			std::cout << "Number of Species after Evaluation: " << species.size() << "\n";
+			new_mutations();
+			plant_seeds();
+		}
 	}
 
 	void end()
@@ -321,9 +362,9 @@ private:
 	std::vector<Species*> species{};
 	std::vector<Plant*> plants{};
 
-	const int day_length{ 10 };
-
 	std::default_random_engine generator;
+
+	int segment{ 0 };
 
 	void growth()
 	{
