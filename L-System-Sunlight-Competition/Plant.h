@@ -198,7 +198,7 @@ public:
 
 	void grow(Display* display)
 	{
-		if (energy > MAX_ENERGY_DEBT)
+		if (energy > MAX_ENERGY_DEBT && command_state.size() < 1000)
 		{
 			L_Systems::L_System system{ species->get_DNA(),&command_state };
 			system.run(1);
