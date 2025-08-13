@@ -6,7 +6,7 @@ Control* Control::control;
 
 Control::Control(GLFWwindow* window) : window(window) 
 {
-	glfwSetInputMode(window, GLFW_CURSOR,GLFW_CURSOR_DISABLED);
+	//glfwSetInputMode(window, GLFW_CURSOR,GLFW_CURSOR_DISABLED);
 	glfwGetWindowSize(window, &width, &height);
 	bind();
 }
@@ -138,6 +138,6 @@ void Control::window_resize(GLFWwindow* window, int width, int height)
 void Control::bind()
 {
 	glfwSetKeyCallback(window, Control::key_input);
-	glfwSetCursorPosCallback(window, Control::mouse_movement);
+	//glfwSetCursorPosCallback(window, Control::mouse_movement);
 	glfwSetWindowSizeCallback(window, Control::window_resize);
 }

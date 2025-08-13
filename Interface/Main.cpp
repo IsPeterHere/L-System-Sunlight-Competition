@@ -90,7 +90,7 @@ public:
                 f();
             }
 
-            buffers->initVIBuffer(bufferManager, vertices, indices);
+            flush_mesh_update();
             glfwPollEvents();
             control->update_camera(camera, 20, 5);
             drawFrame();
@@ -120,6 +120,13 @@ public:
 
     }
 
+    void flush_mesh_update()
+    {
+        vkWaitForFences(device->getHandle(), 1, &inFlightFences[(currentFrame + 1) % MAX_FRAMES_IN_FLIGHT], VK_TRUE, UINT64_MAX);
+        if (buffers->getVIBuffer() != NULL)
+            bufferManager->destroyBuffer(buffers->getVIBuffer());
+        buffers->initVIBuffer(bufferManager, vertices, indices);
+    }
     VkExtent2D getExtent() { return swapChain->getExtent(); }
 
     Camera* camera;
@@ -194,7 +201,6 @@ private:
         swapChain->initFramebuffers(pipeline->getRenderPass());
 
         buffers->initDescriptorPool();
-        buffers->initVIBuffer(bufferManager,vertices, indices);
         buffers->initUniformBuffers(bufferManager, sizeof(UniformBufferObject));
         buffers->initDescriptorSets();
         
