@@ -367,7 +367,7 @@ public:
 		plant_seeds();
 	}
 
-	void day(bool printDNA = false)
+	void day(bool print = false)
 	{
 		if (segment == 0)
 		{
@@ -388,14 +388,16 @@ public:
 		}
 
 		segment = 0;
-		std::cout << "Number of Species: " << species.size() << "\n";
+		if (print)
+			std::cout << "\n" << "\n"<< "Number of Species: " << species.size() << "\n";
 		for (Plant* plant : plants) delete plant;
 		plants.clear();
 
 		evalate_winners();
-		std::cout << "Number of Species after Evaluation: " << species.size() << "\n";
+		if (print)
+			std::cout << "Number of Species after Evaluation: " << species.size() << "\n";
 
-		if (printDNA)
+		if (print)
 		{
 			std::cout << "WINNER ";
 			species[0]->PrintDNA();
@@ -415,8 +417,6 @@ public:
 			display->clear_screen();
 			draw_background();
 			draw_ground();
-			std::cout << "--New Day-- " << "\n";
-			std::cout << "Number of Species: " << species.size() << "\n";
 		}
 
 		growth();
@@ -430,7 +430,6 @@ public:
 			plants.clear();
 
 			evalate_winners();
-			std::cout << "Number of Species after Evaluation: " << species.size() << "\n";
 			new_mutations();
 			plant_seeds();
 		}
