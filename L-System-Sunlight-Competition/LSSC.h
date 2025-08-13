@@ -8,8 +8,9 @@
 #include "ComM.h"
 
 const int DAY_LENGTH{ 10 };
+const int MAP_WIDTH{ 5000 };
 
-const float MAX_ENERGY_DEBT{ -10 };
+const float MAX_ENERGY_DEBT{ -2 };
 
 const float DEPTH_COST_OF_STICK{ 0.1 };
 const float COST_OF_STICK{ 1 };
@@ -17,8 +18,11 @@ const float COST_OF_LEAF{ 1 };
 const float COST_OF_SEED_BALLOT{ 1 };
 
 const int NO_OF_WINNERS{ 1 };
-const int NO_OF_LOSERS{ 1 };
-const int NO_OF_RANDOM_NEW{ 1 };
+
+const float PERCENT_OF_LOSERS{ 0.07 };
+const float PERCENT_OF_RANDOM_NEW{ 0.09 };
+
+const int SEED_DISTRABUTION{ 40 };
 
 const float ROTATION_RADS{ 0.2f };
 const float STICK_LENGTH{ 10 };
@@ -122,14 +126,15 @@ enum class Cmd_lang
 class Species
 {
 public:
-	Species() {}
+	Species(int position) : position(position) {}
 	
 	Species* Mutation(int seed)
 	{
-		Species* mutated = new Species();
+		generator.seed(seed);
+
+		Species* mutated = new Species(position);
 		L_Systems::Rules* new_DNA = mutated->get_DNA();
 
-		generator.seed(seed);
 		std::uniform_int_distribution<int> cmd_distribution(0, static_cast<int>(Cmd_lang::NUMBER_OF_UNIQUE_COMMANDS)-1);
 		std::bernoulli_distribution bool_distribution{};
 
@@ -167,10 +172,6 @@ public:
 		}
 		return mutated;
 	}
-
-	L_Systems::Rules* get_DNA() { return &DNA; }
-	int seed_ballot_points{ 0 };
-
 	void PrintDNA()
 	{
 		std::cout << "DNA RULES:" << "\n";
@@ -238,10 +239,14 @@ public:
 		{
 			CMD(static_cast<Cmd_lang>(i));
 			std::cout << " -> ";
-			TO(DNA[static_cast<L_Systems::alphabet_T>(i)],CMD);
+			TO(DNA[static_cast<L_Systems::alphabet_T>(i)], CMD);
 			std::cout << "\n";
 		}
 	}
+
+	L_Systems::Rules* get_DNA() { return &DNA; }
+	int seed_ballot_points{ 0 };
+	int position;
 private:
 	std::default_random_engine generator;
 
@@ -265,9 +270,9 @@ class Plant
 	};
 
 public:
-	Plant(Species* species, float x_planted_position, float y_planted_position) : species(species), x_planted_position(x_planted_position)
+	Plant(Species* species, float y_planted_position) : species(species), x_planted_position(x_planted_position)
 	{
-		stick s{ {x_planted_position,y_planted_position},0,0 };
+		stick s{ {species->position,y_planted_position},0,0};
 		plant_structure.push_back(s);
 		at = { plant_structure[index].from };
 		pointing = { plant_structure[index].pointing };
@@ -378,8 +383,7 @@ public:
 			draw_background();
 			draw_ground();
 		}
-
-		std::cout << "--New Day-- " << "\n";
+		if (print) std::cout << "--New Day-- " << "\n";
 		while (segment<DAY_LENGTH)
 		{
 			growth();
@@ -388,14 +392,12 @@ public:
 		}
 
 		segment = 0;
-		if (print)
-			std::cout << "\n" << "\n"<< "Number of Species: " << species.size() << "\n";
+		if (print) std::cout << "\n" << "\n"<< "Number of Species: " << species.size() << "\n";
 		for (Plant* plant : plants) delete plant;
 		plants.clear();
 
 		evalate_winners();
-		if (print)
-			std::cout << "Number of Species after Evaluation: " << species.size() << "\n";
+		if (print) std::cout << "Number of Species after Evaluation: " << species.size() << "\n";
 
 		if (print)
 		{
@@ -464,13 +466,13 @@ private:
 			int height{ GROUND_HEIGHT };
 		};
 		std::vector<HighScore> sunlight_lines{};
-		sunlight_lines.resize(display->get_screen_width());
+		sunlight_lines.resize(MAP_WIDTH);
 
 		for (Plant* plant : plants)
 		{
 			for (auto& leaf : plant->leafs)
 			{
-				if (leaf.x >= 0 && leaf.x < display->get_screen_width())
+				if (leaf.x >= 0 && leaf.x < MAP_WIDTH)
 				{
 					if (leaf.y > sunlight_lines[leaf.x].height)
 					{
@@ -502,9 +504,9 @@ private:
 			species.erase(species.begin() + index);
 		}
 
-		if (species.size() > NO_OF_LOSERS)
+		if (species.size()* PERCENT_OF_LOSERS >= 1)
 		{
-			for (int i{ 0 }; i < NO_OF_LOSERS; i++)
+			for (int i{ 0 }; i < static_cast<int>(species.size() * PERCENT_OF_LOSERS); i++)
 			{
 				delete species[species.size()-1];
 				species.erase(species.end()-1);
@@ -521,23 +523,27 @@ private:
 
 		//random one
 		std::uniform_int_distribution<int> species_distribution(0, species.size()-1);
-		for (int i{ 0 }; i < NO_OF_RANDOM_NEW; i++)
-			species.push_back(species[species_distribution(generator)]->Mutation(generator()));
-		
+		if (species.size() * PERCENT_OF_RANDOM_NEW >= 1)
+		{
+			for (int i{ 0 }; i < static_cast<int>(species.size() * PERCENT_OF_RANDOM_NEW); i++)
+				species.push_back(species[species_distribution(generator)]->Mutation(generator()));
+		}
 	}
 	void plant_seeds()
 	{
-		std::uniform_int_distribution<int> width_distribution(0, display->get_screen_width());
+
+		std::uniform_int_distribution<int> seed_distribution(-SEED_DISTRABUTION, SEED_DISTRABUTION);
 
 		for (Species* specie : species)
 		{
-			plants.push_back(new Plant(specie, width_distribution(generator), 50));
+			specie->position += seed_distribution(generator);
+			plants.push_back(new Plant(specie, GROUND_HEIGHT));
 		}
 	}
 
 	void starting_species()
 	{
-		Species* new_specie{ new Species() };
+		Species* new_specie{ new Species(MAP_WIDTH/2.0) };
 		L_Systems::Rules* DNA{ new_specie->get_DNA() };
 		DNA->add(static_cast<L_Systems::alphabet_T>(Cmd_lang::seed), { static_cast<L_Systems::alphabet_T>(Cmd_lang::a),static_cast<L_Systems::alphabet_T>(Cmd_lang::stick),static_cast<L_Systems::alphabet_T>(Cmd_lang::b) });
 		DNA->add(static_cast<L_Systems::alphabet_T>(Cmd_lang::leaf),  {});
@@ -560,12 +566,12 @@ private:
 	{
 		
 		display->set_pen(GROUND_HEIGHT, GROUND_COLOUR,1);
-		display->draw_line(0, GROUND_HEIGHT/2, display->get_screen_width(), GROUND_HEIGHT/2);
+		display->draw_line(0, GROUND_HEIGHT/2, MAP_WIDTH, GROUND_HEIGHT/2);
 	}
 	void draw_background()
 	{
 
 		display->set_pen(display->get_screen_height(), SKY_COLOUR,0);
-		display->draw_line(0, display->get_screen_height()/2, display->get_screen_width(), display->get_screen_height()/2);
+		display->draw_line(0, display->get_screen_height()/2, MAP_WIDTH, display->get_screen_height()/2);
 	}
 };
