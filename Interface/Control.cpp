@@ -94,6 +94,9 @@ void Control::key_input(GLFWwindow* window, int key, int scancode, int action, i
 			case GLFW_KEY_G:
 				control->g = true;
 				break;
+			case GLFW_KEY_P:
+				control->p = !control->p;
+				break;
 			default:
 				break;
 			}

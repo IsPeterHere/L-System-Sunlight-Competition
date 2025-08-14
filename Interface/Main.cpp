@@ -83,7 +83,7 @@ public:
             std::chrono::steady_clock::time_point  currentTime = std::chrono::high_resolution_clock::now();
             f_call_time_ellapsed += std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
             
-            if (f_call_time_ellapsed >= f_call_time)
+            if (f_call_time_ellapsed >= f_call_time && !control->p)
             {
                 f_call_time_ellapsed = 0;
                 startTime = std::chrono::high_resolution_clock::now();
@@ -128,7 +128,7 @@ public:
         buffers->initVIBuffer(bufferManager, vertices, indices);
     }
     VkExtent2D getExtent() { return swapChain->getExtent(); }
-
+    void close() { glfwSetWindowShouldClose(window->getHandle(), true); }
     Camera* camera;
     Control* control;
 private:
@@ -343,6 +343,12 @@ public:
             instance->world.segment_day();
         else
             instance->world.day(instance->app.control->g);
+
+        if (instance->world.get_number_of_species() == 0)
+        {
+            std::cout << "\n" << "\n" << "No Species Remain" << "\n" << "\n";
+            instance->app.close();
+        }
     }
 
     ExampleApplication app{};

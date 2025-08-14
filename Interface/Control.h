@@ -13,7 +13,7 @@ public:
 	double last_x_position, last_y_position;
 	double x_mouse_movement, y_mouse_movement;
 	bool mouse_normilized{ false };
-	bool w, a, s, d, t, g;
+	bool w, a, s, d, t, g, p;
 
 private:
 	static Control* control;
