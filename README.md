@@ -4,7 +4,7 @@
 
 *what?* - A Simulation in which "plants" compete against each other for "sunlight".  
 
-*how?* - The plants "growth patten" is encoded by an L-system rule-set which indicates how the plant should grow its superstructure of "sticks" and "leafs". (Each Successive plant will have some nominal variation from the parent plants rule-set). The competition emerges as the key recourse "Sunlight" is collected from only from the highest "leaf" (i.e. in any vertical line only the "plant" with the highest "leaf" will receive "sunlight")
+*how?* - The plants "growth patten" is encoded by an DOL-system rule-set which indicates how the plant should grow its superstructure of "sticks" and "leafs". (Each Successive plant will have some nominal variation from the parent plants rule-set). The competition emerges as the key recourse "Sunlight" is collected from only from the highest "leaf" (i.e. in any vertical line only the "plant" with the highest "leaf" will receive "sunlight")
 
 *why?* - Different successful growth patterns will emerge depending on the conditions chosen at start (conditions are set in constants in LSSC.ccp).
 
@@ -30,5 +30,5 @@
 
 ## Other resources used
 
-<a href = "https://github.com/IsPeterHere/Computational-Models">Computational Models</a> - *L-System taken from here*  
+<a href = "https://github.com/IsPeterHere/Computational-Models">Computational Models</a> - *DOL-System taken from here*  
 <a href = "https://github.com/IsPeterHere/Vulkan-Interface">Vulkan Interface</a> - *Used for the display*
