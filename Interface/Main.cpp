@@ -330,6 +330,12 @@ public:
     void main()
     {
         instance = this;
+
+        std::cout << "LSSC" << "\n";
+        std::cout << "Press P to pause/unpause" << "\n";
+        std::cout << "HOLD G to print day summary" << "\n";
+        std::cout << "Press T to switch between seeing day or skipping day" << "\n";
+        std::cout << "\n" << "\n";
         world.start();
         app.boot_up();
         app.run(&update,10);
@@ -340,9 +346,9 @@ public:
     {
         instance->display.update_screen_dimensions(instance->app.getExtent().width, instance->app.getExtent().height);
         if (instance->app.control->t)
-            instance->world.segment_day();
-        else
             instance->world.day(instance->app.control->g);
+        else
+            instance->world.segment_day();
 
         if (instance->world.get_number_of_species() == 0)
         {

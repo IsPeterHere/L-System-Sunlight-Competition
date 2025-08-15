@@ -7,17 +7,18 @@
 #include"..\Interface\MYR.h"
 #include "ComM.h"
 
-const int DAY_LENGTH{ 15 };//How many "segments" of growing is each day made up of
+const int DAY_LENGTH{ 30 };//How many "segments" of growing is each day made up of
 const int MAP_WIDTH{ 2500 };
 const int NUMBER_OF_STARTING_PLANTS{ 10 };//Number of copies of the current default starting plant defined in world
 
 const float MAX_ENERGY_DEBT{ -5 };// The min amount of energy a plant can have at any time
-const float DEPTH_COST_OF_STICK{ 0.1 };// added to the energy cost of a stick for every stick between it and the "root"
-const float COST_OF_STICK{ 1 };// energy cost of growing stick
+const float DEPTH_COST_OF_STICK{ 0.3 };// added to the energy cost of a stick for every stick between it and the "root"
+const float COST_OF_STICK{ 1 };// energy cost of growing stick from "root"
 const float COST_OF_LEAF{ 1 };// energy cost of growing leaf
-const float COST_OF_SEED_BALLOT{ 1 };// energy cost of adding one point into the "seed ballot" for the next day (plants cant use debt to do this action)
+const float COST_OF_SEED_BALLOT{ 20 };// energy cost of adding one point into the "seed ballot" for the next day (plants cant use debt to do this action)
+const float ENERGY_PER_SUNLIGHT{ 0.2 };
 
-const int NO_OF_WINNERS{ 0 };// The number of new species mutated from the highest ranking species in the seed ballot
+const int NO_OF_WINNERS{ 1 };// The number of new species mutated from the highest ranking species in the seed ballot
 const float PERCENT_OF_LOSERS{ 0.00 };// The percent of species removed based of the lowest ranking species in the seed ballot
 const float PERCENT_OF_RANDOM_NEW{ 0.02 };// The percent of random new species each day
 const int SEED_DISTRABUTION{ 40 };
@@ -27,9 +28,10 @@ const int MAX_CMD_WORD_SIZE{ 1000 };// How long can the word representing "growi
 const float ROTATION_RADS{ 0.2f };// how many rads does a left/right command rotate a stick
 const float STICK_LENGTH{ 10 };
 
+const int LEAF_WIDTH{ 4 };//unlike the other too bellow this actually effects how much sunlight this leaf can catch (i.e for with = 3 could catch up to 3 sunlight)
 const int GROUND_HEIGHT{ 50 };
-const int STICK_WIDTH{ 2 };
-const int LEAF_WIDTH{ 3 };
+const int STICK_THICKNESS{ 2 };
+const int LEAF_THICKNESS{ 2 };
 constexpr glm::vec3 RGB(int r, int g, int b) { return { r / 256.0, g / 256.0, b / 256.0 }; }
 
 //LIGHT
@@ -151,6 +153,9 @@ public:
 		generator.seed(seed);
 
 		Species* mutated = new Species(position);
+		std::uniform_int_distribution<int> seed_distribution(-SEED_DISTRABUTION, SEED_DISTRABUTION);
+		mutated->position += seed_distribution(generator);
+
 		L_Systems::Rules* new_DNA = mutated->get_DNA();
 		std::bernoulli_distribution bool_distribution{};
 
@@ -347,8 +352,8 @@ public:
 			case Cmd_lang::leaf:
 				energy -= COST_OF_LEAF;
 
-				display->set_pen(LEAF_WIDTH, LEAF_COLOUR, 3);
-				display->draw_line(at.x - 1, at.y, at.x + 1, at.y + 1);
+				display->set_pen(LEAF_THICKNESS, LEAF_COLOUR, 3);
+				display->draw_line(at.x - LEAF_WIDTH/2, at.y, at.x + LEAF_WIDTH/2, at.y);
 				leafs.push_back(at);
 				break;
 			case Cmd_lang::stick:
@@ -356,7 +361,7 @@ public:
 
 				new_position.x = at.x + STICK_LENGTH * std::sin(pointing);
 				new_position.y = at.y + STICK_LENGTH * std::cos(pointing);
-				display->set_pen(STICK_WIDTH, STICK_COLOUR+ species->unique_colour_dif, 2);
+				display->set_pen(STICK_THICKNESS, STICK_COLOUR+ species->unique_colour_dif, 2);
 				display->draw_line(at.x, at.y, new_position.x, new_position.y);
 				plant_structure.push_back({ new_position,pointing,depth + 1});
 				at = new_position;
@@ -533,12 +538,16 @@ private:
 		{
 			for (auto& leaf : plant->leafs)
 			{
-				if (leaf.x >= 0 && leaf.x < MAP_WIDTH)
+				for (int x{ -(LEAF_WIDTH) / 2 }; x <= LEAF_WIDTH / 2; x++)
 				{
-					if (leaf.y > sunlight_lines[leaf.x].height)
+					int X = x+leaf.x;
+					if (X >= 0 && X < MAP_WIDTH)
 					{
-						sunlight_lines[leaf.x].plant = plant;
-						sunlight_lines[leaf.x].height = leaf.y;
+						if (leaf.y > sunlight_lines[X].height)
+						{
+							sunlight_lines[X].plant = plant;
+							sunlight_lines[X].height = leaf.y;
+						}
 					}
 				}
 			}
@@ -547,7 +556,7 @@ private:
 		for (HighScore winner : sunlight_lines)
 		{
 			if (winner.plant != NULL)
-				winner.plant->energy += 1;
+				winner.plant->energy += ENERGY_PER_SUNLIGHT;
 		}
 
 	}
@@ -595,7 +604,7 @@ private:
 	}
 	void plant_seeds()
 	{
-		std::uniform_int_distribution<int> seed_distribution(-SEED_DISTRABUTION, SEED_DISTRABUTION);
+		std::uniform_int_distribution<int> seed_distribution(-1, 1);
 
 		for (Species* specie : species)
 		{
