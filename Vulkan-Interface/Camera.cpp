@@ -18,11 +18,11 @@ void Camera::euler_update(double delta_yaw, double delta_pitch)
 		yaw += 360;
 }
 
-void Camera::position_update(glm::vec3 delta_position) 
+void Camera::position_update(glm::vec3 delta_position)
 {
 	position += front * delta_position.x;
-	position += right * (delta_position.y*10);
-	position.y -= 2*delta_position.x/7;
+	position += right * (delta_position.y * 12);
+	position.y -= 2 * delta_position.x / 7;
 }
 
 void Camera::update_look_at()

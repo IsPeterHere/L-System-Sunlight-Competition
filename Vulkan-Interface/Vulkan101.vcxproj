@@ -138,7 +138,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
-    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="Example.cpp" />
     <ClCompile Include="BufferManager.cpp" />
     <ClCompile Include="Buffers.cpp" />
     <ClCompile Include="Camera.h" />
@@ -161,6 +161,7 @@
   <ItemGroup>
     <ClInclude Include="..\L-System-Sunlight-Competition\ComM.h" />
     <ClInclude Include="..\L-System-Sunlight-Competition\LSSC.h" />
+    <ClInclude Include="BaseApp.h" />
     <ClInclude Include="MYR.h" />
     <ClInclude Include="vk_mem_alloc.h" />
   </ItemGroup>

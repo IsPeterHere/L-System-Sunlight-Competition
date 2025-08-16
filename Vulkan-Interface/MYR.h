@@ -80,6 +80,7 @@ namespace MYR
         void initWindow();
 
         GLFWwindow* getHandle() const { return window; }
+        void close_window() { glfwSetWindowShouldClose(window, true); }
 
     private:
         const uint32_t WIDTH;
@@ -222,6 +223,7 @@ namespace MYR
 
         VkCommandBuffer_T** refCommandfBuffer(uint32_t bufferIndex) { return &(commandBuffers[bufferIndex]); }
         VkCommandPool getTransientCommandPool() { return transientCommandPool; }
+        void set_swapChain(SwapChain swapChain) { this->swapChain = swapChain; }
 
     private:
         const int MAX_FRAMES_IN_FLIGHT;

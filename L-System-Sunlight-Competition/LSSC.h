@@ -4,7 +4,6 @@
 #include<vector>
 #include<algorithm>
 #include<cmath>
-#include"..\Interface\MYR.h"
 #include "ComM.h"
 
 const int DAY_LENGTH{ 20 };//How many "segments" of growing is each day made up of

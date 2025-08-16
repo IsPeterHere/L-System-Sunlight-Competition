@@ -7,7 +7,7 @@
 class Camera
 {
 public:
-	Camera(){}
+	Camera() {}
 
 	glm::mat4x4 get_look_at() { update_look_at(); return look_at; }
 
