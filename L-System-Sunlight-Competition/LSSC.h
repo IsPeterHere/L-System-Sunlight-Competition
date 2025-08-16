@@ -7,21 +7,21 @@
 #include"..\Interface\MYR.h"
 #include "ComM.h"
 
-const int DAY_LENGTH{ 30 };//How many "segments" of growing is each day made up of
+const int DAY_LENGTH{ 20 };//How many "segments" of growing is each day made up of
 const int MAP_WIDTH{ 2500 };
 const int NUMBER_OF_STARTING_PLANTS{ 10 };//Number of copies of the current default starting plant defined in world
 
 const float MAX_ENERGY_DEBT{ -5 };// The min amount of energy a plant can have at any time
-const float DEPTH_COST_OF_STICK{ 0.3 };// added to the energy cost of a stick for every stick between it and the "root"
-const float COST_OF_STICK{ 1 };// energy cost of growing stick from "root"
+const float DEPTH_COST_OF_STICK{ 0.1 };// added to the energy cost of a stick for every stick between it and the "root"
+const float COST_OF_STICK{ 0.5 };// energy cost of growing stick from "root"
 const float COST_OF_LEAF{ 1 };// energy cost of growing leaf
-const float COST_OF_SEED_BALLOT{ 20 };// energy cost of adding one point into the "seed ballot" for the next day (plants cant use debt to do this action)
-const float ENERGY_PER_SUNLIGHT{ 0.2 };
+const float COST_OF_SEED_BALLOT{ 10 };// energy cost of adding one point into the "seed ballot" for the next day (plants cant use debt to do this action)
+const float ENERGY_PER_SUNLIGHT{ 0.1 };
 
-const int NO_OF_WINNERS{ 1 };// The number of new species mutated from the highest ranking species in the seed ballot
+const int NO_OF_WINNERS{ 0 };// The number of new species mutated from the highest ranking species in the seed ballot
 const float PERCENT_OF_LOSERS{ 0.00 };// The percent of species removed based of the lowest ranking species in the seed ballot
-const float PERCENT_OF_RANDOM_NEW{ 0.02 };// The percent of random new species each day
-const int SEED_DISTRABUTION{ 40 };
+const float PERCENT_OF_RANDOM_NEW{ 0.10 };// The percent of random new species each day
+const int SEED_DISTRABUTION{ 90 };
 
 const int MAX_CMD_WORD_SIZE{ 1000 };// How long can the word representing "growing commands" get (~mostly so they don't eat too much memory :) )
 
@@ -593,7 +593,7 @@ private:
 
 		//winners get one
 		for (int i{0}; i< NO_OF_WINNERS;i++)
-			species.push_back(species[0]->Mutation(generator()));
+			species.push_back(species[i]->Mutation(generator()));
 
 		//random one
 		if (species.size() * PERCENT_OF_RANDOM_NEW >= 1)

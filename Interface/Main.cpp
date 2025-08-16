@@ -346,9 +346,9 @@ public:
     {
         instance->display.update_screen_dimensions(instance->app.getExtent().width, instance->app.getExtent().height);
         if (instance->app.control->t)
-            instance->world.day(instance->app.control->g);
-        else
             instance->world.segment_day();
+        else
+            instance->world.day(instance->app.control->g);
 
         if (instance->world.get_number_of_species() == 0)
         {
